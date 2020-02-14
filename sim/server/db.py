@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
     Column,
     Integer,
+    Sequence,
     String,
 )
 
@@ -12,10 +13,36 @@ from sqlalchemy import (
 Base = declarative_base()
 
 
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(
+        Integer,
+        Sequence('animal_id_seq', increment=1),
+        primary_key=True
+    )
+    email = Column(String)
+    api_key = Column(String)
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'api_key': self.api_key
+        }
+
+    def __repr__(self):
+        return f"<User(email={self.email}, api_key={self.api_key})>"
+
+
 class Animal(Base):
     __tablename__ = 'animals'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(
+        Integer,
+        Sequence('animal_id_seq', increment=1),
+        primary_key=True
+    )
     name = Column(String)
     species = Column(String)
 
@@ -25,6 +52,9 @@ class Animal(Base):
             'name': self.name,
             'species': self.species,
         }
+
+    def __repr__(self):
+        return f"<Animal(name={self.name}, species={self.species})>"
 
 
 class Database(object):

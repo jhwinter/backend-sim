@@ -10,9 +10,14 @@ class Client(object):
         self._hostname = hostname
         self._port = port
 
-    def execute(self, uri):
+    def execute(self, uri: str, data: dict = {}):
         base_url = 'http://{0}:{1}/'.format(self._hostname, self._port)
-        r = requests.post(base_url + uri)
+        r = None
+        if not data:
+            r = requests.post(base_url + uri)
+        else:
+            r = requests.post(url=f'{base_url}{uri}', data=data)
+
         if r.ok:
             return r.json()
         else:
@@ -21,8 +26,17 @@ class Client(object):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='simulation.cfg', help='The path to the configuration file.')
-    parser.add_argument('uri', nargs='?', default='status', help='The uri path to hit (defaults to "/status").')
+    parser.add_argument(
+        '--config',
+        default='simulation.cfg',
+        help='The path to the configuration file.'
+    )
+    parser.add_argument(
+        'uri',
+        nargs='?',
+        default='status',
+        help='The uri path to hit (defaults to "/status").'
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)
