@@ -18,7 +18,7 @@ class User(Base):
 
     id = Column(
         Integer,
-        Sequence('animal_id_seq', increment=1),
+        Sequence('user_id_seq', increment=1),
         primary_key=True
     )
     email = Column(String)

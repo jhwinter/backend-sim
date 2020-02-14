@@ -11,6 +11,8 @@ test_config = dict(
     db='data/test.db',
 )
 
+key = 'blah'
+query_string = f"?key={key}"
 
 class SimTest(unittest.TestCase):
     def _start_server_thread(self):
@@ -68,15 +70,15 @@ class SimTest(unittest.TestCase):
         return self._client_response
 
     def test_status(self):
-        response = self.do_single_request('status')
+        response = self.do_single_request(f'status{query_string}')
         self.assertEqual(response, {'status': 'ok'})
 
     def test_animals(self):
-        response = self.do_single_request('animals')
+        response = self.do_single_request(f'animals{query_string}')
         self.assertEqual(len(response['animals']), 10)
 
     def test_animal_by_id(self):
-        response = self.do_single_request('animal/1')
+        response = self.do_single_request(f'animal/1{query_string}')
         self.assertEqual(
             response,
             {'id': 1, 'name': 'Bob', 'species': 'Llama'},
@@ -85,25 +87,25 @@ class SimTest(unittest.TestCase):
 
     def test_store_animal(self):
         response = self.do_data_request(
-            'store_animal',
+            f'store_animal{query_string}',
             {'name': 'Harambe', 'species': 'Gorilla'}
         )
+        self.assertTrue(response)
+
+    def test_fail_authenticate_user(self):
+        response = self.do_single_request('animals?key=blahasdfe')
         self.assertEqual(
             response,
-            True
+            {'error': True, 'message': 'invalid api key'}
         )
 
     def test_store_user(self):
         response = self.do_data_request(
-            'store_user',
-            {'email': 'blah@gmail.com', 'api_key': 'blah'}
+            f'store_user{query_string}',
+            {'email': 'blah@gmail.com'}
         )
-        self.assertEqual(response, True)
-
-    def test_authenticate_user(self):
-        response = self.do_single_request('store_user?api_key=blah&who=dat')
-        self.assertEqual(response, True)
+        self.assertTrue(response)
 
     def test_404(self):
-        response = self.do_single_request('some-missing-path')
+        response = self.do_single_request(f'some-missing-path{query_string}')
         self.assertEqual(response[:3], '404')

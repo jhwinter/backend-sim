@@ -2,9 +2,16 @@
     "python.pythonPath": ".venv/bin/python",
     "sqltools.connections": [
         {
-            "database": "${workspaceFolder}/data/test.db",
+            "database": "./data/test.db",
             "dialect": "SQLite",
+            "isActive": true,
+            "isConnected": true,
             "name": "testdb"
+        },
+        {
+            "database": "${workspaceFolder}/data/simulation.db",
+            "dialect": "SQLite",
+            "name": "simulationdb"
         }
     ],
     "sqltools.useNodeRuntime": true,

@@ -26,21 +26,26 @@ class BaseJSONHandler(BaseHTTPRequestHandler):
             retrieve_data_paths = ['animal']
             store_data_paths = ['store_animal', 'store_user']
 
-            path = self.path.split('/')
+            url = urllib.parse.urlsplit(self.path)
+            path = url.path.split('/')
 
+            response_object = None
             # authenticate user unless a user is being added
             if path[1] != 'store_user':
-                url = urllib.parse.urlsplit(self.path).query
-                api_key = dict(urllib.parse.parse_qsl(url))
-                if self._authenticate_user(api_key) != True:
-                    self.send_error(200, message='invalid api key')
+                query_string = dict(urllib.parse.parse_qsl(url.query))
+                api_key = query_string.get('key', '')
+                if self._authenticate_user(str(api_key)) != True:
+                    response_object = {
+                        'error': True,
+                        'message': 'invalid api key'
+                    }
+                    self._send_json_response(response_object)
 
             # process the request
             handler = self.get_handler_for_path(path[1])
             if handler is None:
                 self.send_error(404)
             else:
-                response_object = None
                 if path[1] in no_data_paths:
                     response_object = handler()
                 elif path[1] in retrieve_data_paths:
@@ -49,7 +54,6 @@ class BaseJSONHandler(BaseHTTPRequestHandler):
                     content_length = int(self.headers['Content-Length'])
                     body = self.rfile.read(content_length).decode('utf-8')
                     data = dict(urllib.parse.parse_qsl(body))
-                    print(f"\n\n{data}\n\n")
                     response_object = handler(data)
 
                 self._send_json_response(response_object)
@@ -79,7 +83,7 @@ class BaseJSONHandler(BaseHTTPRequestHandler):
         """
         session = self.server.database.create_session()
         try:
-            user = session.query(db.User).filter(db.User.api_key == api_key)
+            user = session.query(db.User).filter(db.User.api_key == api_key).all()
             return False if not user else True
         finally:
             session.close()
